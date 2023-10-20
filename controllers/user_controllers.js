@@ -1,3 +1,4 @@
+const { name } = require("ejs");
 const User = require("../models/user");
 
 
@@ -19,10 +20,44 @@ module.exports.signup = function(req,res){
 
 module.exports.login = function(req,res){
 
-    res.render("login");
+    res.render("login",{
+        msg: req.query.msg
+    });
     
 }
 
+module.exports.profile = function(req,res){
+
+    var user_id = req.cookies["user_id"];
+    if(user_id){
+        
+        let find_user = User.findOne({_id : user_id});
+        find_user.then((user)=>{
+            
+            console.log(user);
+
+            var user_name = user["name"];
+            var user_email = user["email"];
+
+            res.render("profile",{
+
+                name: user_name,
+                email: user_email
+            });
+        });
+        find_user.catch((err)=>{
+            console.log(err);
+        });
+
+       
+    }
+    else{
+
+        res.redirect("/users/login?msg=Login+First");
+
+    }
+    // res.render("profile");
+}
 
 module.exports.register = function(req,res){
 
@@ -70,7 +105,7 @@ module.exports.createSession = function(req,res){
         //handle pwd does not match
         if (user.password!= req.body.pwd){
 
-            return res.redirect("/user/login?msg:password+incorrect");
+            return res.redirect("/users/login?msg=password+incorrect");
 
         }
         //create session
@@ -79,6 +114,7 @@ module.exports.createSession = function(req,res){
 
 
     })
+
     .catch((err)=>{
 
         return res.redirect("/users/login?msg=user+not+found+signup+first");
